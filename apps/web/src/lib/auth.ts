@@ -1,13 +1,18 @@
 import { consumeInvite, findValidInvite, schema } from "@fluentloop/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError } from "better-auth/api";
+import {
+  addOAuthServerContext,
+  APIError,
+  createAuthMiddleware,
+  getOAuthState,
+} from "better-auth/api";
 import { magicLink } from "better-auth/plugins";
 import { Resend } from "resend";
 
 import { getDb } from "./db";
 import { isKakaoConfigured, loadWebEnv, type WebEnv } from "./env";
-import { readInviteCodeFromCookieHeader } from "./invite-cookie";
+import { inviteCodeFromServerContext, readInviteCodeFromCookieHeader } from "./invite-cookie";
 
 function cookieHeaderFromCtx(ctx: unknown): string | null {
   if (!ctx || typeof ctx !== "object") return null;
@@ -22,6 +27,17 @@ function cookieHeaderFromCtx(ctx: unknown): string | null {
     return record.request.headers.get("cookie");
   }
   return null;
+}
+
+async function inviteCodeForSignUp(ctx: unknown): Promise<string | null> {
+  const fromCookie = readInviteCodeFromCookieHeader(cookieHeaderFromCtx(ctx));
+  if (fromCookie) return fromCookie;
+  try {
+    const state = await getOAuthState();
+    return inviteCodeFromServerContext(state?.serverContext);
+  } catch {
+    return null;
+  }
 }
 
 async function sendMagicLinkEmail(email: string, url: string, env: WebEnv): Promise<void> {
@@ -50,6 +66,21 @@ function createAuth() {
   return betterAuth({
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
+    onAPIError: {
+      errorURL: `${env.BETTER_AUTH_URL}/join`,
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        const path = ctx.path ?? "";
+        if (path !== "/sign-in/social" && !path.endsWith("/sign-in/social")) return;
+        const code = readInviteCodeFromCookieHeader(ctx.headers?.get("cookie") ?? null);
+        if (!code) return;
+        const invite = await findValidInvite(getDb(), code);
+        if (!invite) return;
+        // The browser may not send the invite cookie on Kakao's cross-site return.
+        await addOAuthServerContext({ inviteCode: invite.code });
+      }),
+    },
     database: drizzleAdapter(getDb(), {
       provider: "pg",
       schema,
@@ -91,6 +122,9 @@ function createAuth() {
             kakao: {
               clientId: kakaoId,
               clientSecret: kakaoSecret,
+              // Default scopes include account_email, which non-Biz apps reject.
+              disableDefaultScope: true,
+              scope: ["profile_nickname"],
               // Non-Biz Kakao apps often omit email; keep a stable non-routable address.
               mapProfileToUser: (profile: {
                 id: number | string;
@@ -113,16 +147,19 @@ function createAuth() {
       user: {
         create: {
           before: async (user, ctx) => {
-            const code = readInviteCodeFromCookieHeader(cookieHeaderFromCtx(ctx));
+            const code = await inviteCodeForSignUp(ctx);
             if (!code) {
+              console.error("[auth] sign-up blocked: no invite code on the request");
               throw new APIError("FORBIDDEN", {
                 message: "A valid invite code is required to join.",
+                code: "INVITE_REQUIRED",
               });
             }
             const invite = await findValidInvite(getDb(), code);
             if (!invite) {
               throw new APIError("FORBIDDEN", {
                 message: "This invite code is invalid or has been used up.",
+                code: "INVITE_REQUIRED",
               });
             }
             return {

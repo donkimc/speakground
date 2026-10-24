@@ -24,3 +24,11 @@ export function readInviteCodeFromCookieHeader(cookieHeader: string | null): str
   }
   return null;
 }
+
+/** Invite code stashed in the OAuth state when Kakao sign-in starts. */
+export function inviteCodeFromServerContext(serverContext: unknown): string | null {
+  if (!serverContext || typeof serverContext !== "object") return null;
+  const code = (serverContext as { inviteCode?: unknown }).inviteCode;
+  if (typeof code !== "string" || !code) return null;
+  return normalizeInviteCode(code);
+}

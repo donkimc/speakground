@@ -1,16 +1,29 @@
 import { Button, KoreanHint } from "@fluentloop/ui";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; error_description?: string }>;
+}) {
   let session: Awaited<ReturnType<typeof getSession>> = null;
   try {
     session = await getSession();
   } catch {
     session = null;
+  }
+
+  const params = await searchParams;
+  if (!session?.user && params.error) {
+    const next = new URLSearchParams();
+    next.set("error", params.error);
+    if (params.error_description) next.set("error_description", params.error_description);
+    redirect(`/join?${next.toString()}`);
   }
 
   const consentedAt = session

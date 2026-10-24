@@ -10,16 +10,20 @@ type Step = "invite" | "sign-in" | "magic-sent";
 
 export function JoinForm({
   initialCode,
+  initialStep = "invite",
+  authError = null,
   kakaoEnabled,
 }: {
   initialCode: string;
+  initialStep?: Step;
+  authError?: string | null;
   kakaoEnabled: boolean;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("invite");
+  const [step, setStep] = useState<Step>(initialStep);
   const [code, setCode] = useState(initialCode);
   const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(authError);
   const [pending, startTransition] = useTransition();
 
   function redeemInvite(event: React.FormEvent) {
