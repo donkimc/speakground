@@ -21,7 +21,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-build-secret-at-least-32-characters-long
       BETTER_AUTH_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
@@ -47,7 +47,7 @@ jobs:
     name: Docker images build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - run: docker build -f apps/web/Dockerfile -t fluentloop-web .
       - run: docker build -f apps/worker/Dockerfile -t fluentloop-worker .
 
@@ -55,7 +55,7 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -66,7 +66,7 @@ jobs:
     name: Dependency audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
