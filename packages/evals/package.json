@@ -8,11 +8,13 @@
   },
   "scripts": {
     "evals": "tsx src/run.ts",
+    "evals:groq": "tsx src/run-groq.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@fluentloop/ai": "workspace:*",
-    "@fluentloop/core": "workspace:*"
+    "@fluentloop/core": "workspace:*",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "tsx": "^4.23.15"

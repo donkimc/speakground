@@ -153,6 +153,9 @@ importers:
       '@fluentloop/core':
         specifier: workspace:*
         version: link:../core
+      zod:
+        specifier: ^4.3.6
+        version: 4.6.5
     devDependencies:
       tsx:
         specifier: ^4.23.15
