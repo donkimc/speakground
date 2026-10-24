@@ -122,9 +122,9 @@ function createAuth() {
             kakao: {
               clientId: kakaoId,
               clientSecret: kakaoSecret,
-              // Default scopes include account_email, which non-Biz apps reject.
+              // Non-Biz apps reject scopes that are not enabled as consent items.
+              // The Kakao user id is enough; nickname and email are optional.
               disableDefaultScope: true,
-              scope: ["profile_nickname"],
               // Non-Biz Kakao apps often omit email; keep a stable non-routable address.
               mapProfileToUser: (profile: {
                 id: number | string;
