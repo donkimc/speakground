@@ -9,6 +9,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -115,6 +116,85 @@ export const skillEstimates = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.skill] })],
 );
 
+/**
+ * One shared practice set per level per Korea calendar day.
+ * `items` includes the answer key and is not sent to the browser until scoring.
+ */
+export const dailySets = pgTable(
+  "daily_sets",
+  {
+    id: text("id").primaryKey(),
+    level: text("level").notNull(),
+    topic: text("topic").notNull(),
+    practiceDate: text("practice_date").notNull(),
+    items: jsonb("items").notNull(),
+    writing: jsonb("writing").notNull(),
+    promptId: text("prompt_id").notNull(),
+    model: text("model").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("daily_sets_level_date_uidx").on(table.level, table.practiceDate)],
+);
+
+/** A learner's answers for one daily set. One attempt. */
+export const practiceResponses = pgTable(
+  "practice_responses",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    dailySetId: text("daily_set_id")
+      .notNull()
+      .references(() => dailySets.id, { onDelete: "cascade" }),
+    answers: jsonb("answers").notNull(),
+    score: integer("score").notNull(),
+    writing: text("writing"),
+    writingFeedback: jsonb("writing_feedback"),
+    completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.dailySetId] })],
+);
+
+/** One flag per learner per question: wrong, too hard, or too easy. */
+export const itemFeedback = pgTable(
+  "item_feedback",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    dailySetId: text("daily_set_id")
+      .notNull()
+      .references(() => dailySets.id, { onDelete: "cascade" }),
+    itemIndex: integer("item_index").notNull(),
+    kind: text("kind").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.dailySetId, table.itemIndex] })],
+);
+
+/** A phrase the learner missed or corrected. Reviewed on a widening schedule. */
+export const notebookEntries = pgTable(
+  "notebook_entries",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    term: text("term").notNull(),
+    termKey: text("term_key").notNull(),
+    meaningKo: text("meaning_ko").notNull(),
+    example: text("example").notNull(),
+    intervalDays: integer("interval_days").notNull(),
+    dueOn: text("due_on").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("notebook_entries_user_term_uidx").on(table.userId, table.termKey),
+    index("notebook_entries_user_due_idx").on(table.userId, table.dueOn),
+  ],
+);
+
 /** Shared syllabus. Not learner data. Seeded from the core curriculum catalog. */
 export const curriculumNodes = pgTable("curriculum_nodes", {
   id: text("id").primaryKey(),
@@ -154,6 +234,10 @@ export const schema = {
   invites,
   placementSessions,
   skillEstimates,
+  dailySets,
+  practiceResponses,
+  notebookEntries,
+  itemFeedback,
   curriculumNodes,
   userRelations,
   sessionRelations,

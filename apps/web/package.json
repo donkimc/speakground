@@ -11,8 +11,10 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@fluentloop/ai": "workspace:*",
     "@fluentloop/core": "workspace:*",
     "@fluentloop/db": "workspace:*",
+    "@fluentloop/evals": "workspace:*",
     "@fluentloop/ui": "workspace:*",
     "better-auth": "^1.7.7",
     "drizzle-orm": "^0.45.4",

@@ -51,6 +51,15 @@ export default async function HomePage({
             Signed in as <span className="font-medium text-foreground">{displayName}</span>.
           </p>
           <Button asChild>
+            <Link href="/practice">Today&apos;s practice</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/notebook">Notebook</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/progress">Progress</Link>
+          </Button>
+          <Button asChild variant="secondary">
             <Link href="/placement">Placement test</Link>
           </Button>
         </div>

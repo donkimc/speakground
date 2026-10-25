@@ -32,8 +32,9 @@ export function createGroqProvider(options: {
           },
           body: JSON.stringify({
             model,
-            temperature: 0,
-            max_tokens: 2000,
+            temperature: request.temperature ?? 0,
+            max_tokens: 8000,
+            ...(request.reasoningEffort ? { reasoning_effort: request.reasoningEffort } : {}),
             messages: [
               { role: "system", content: request.system },
               { role: "user", content: request.input },
@@ -54,7 +55,8 @@ export function createGroqProvider(options: {
         await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
       if (!response?.ok) {
-        throw new Error(`Groq request failed (${response?.status ?? "no response"}).`);
+        const detail = response ? (await response.text()).slice(0, 500) : "no response";
+        throw new Error(`Groq request failed (${response?.status ?? "no response"}): ${detail}`);
       }
       const body = (await response.json()) as {
         model?: string;

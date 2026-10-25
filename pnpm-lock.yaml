@@ -50,12 +50,18 @@ importers:
 
   apps/web:
     dependencies:
+      '@fluentloop/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@fluentloop/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@fluentloop/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@fluentloop/evals':
+        specifier: workspace:*
+        version: link:../../packages/evals
       '@fluentloop/ui':
         specifier: workspace:*
         version: link:../../packages/ui

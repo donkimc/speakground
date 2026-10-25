@@ -20,6 +20,7 @@ describe("createGroqProvider", () => {
         const headers = new Headers(init?.headers);
         const body = JSON.parse(String(init?.body)) as {
           model: string;
+          temperature: number;
           response_format: { json_schema: { strict: boolean; schema: { $schema?: string } } };
         };
         seen.url = String(url);
@@ -27,6 +28,8 @@ describe("createGroqProvider", () => {
         seen.model = body.model;
         seen.strict = body.response_format.json_schema.strict;
         expect(body.response_format.json_schema.schema.$schema).toBeUndefined();
+        expect("reasoning_effort" in body).toBe(false);
+        expect(body.temperature).toBe(0);
         return new Response(
           JSON.stringify({
             model: "openai/gpt-oss-120b",

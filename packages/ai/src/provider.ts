@@ -16,6 +16,13 @@ export interface StructuredRequest<T extends z.ZodType> {
   system: string;
   input: string;
   schema: T;
+  /**
+   * How long a reasoning model may think before the JSON answer.
+   * Daily generation uses "low" so the answer fits the token budget.
+   */
+  reasoningEffort?: "low" | "medium" | "high";
+  /** Defaults to 0. Practice generation raises this so a retry is not identical. */
+  temperature?: number;
 }
 
 export interface StructuredResult<T> {

@@ -20,6 +20,7 @@ ENV NODE_ENV=production \
     PORT=10000
 COPY --from=build --chown=node:node /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=node:node /repo/packages/ai/prompts ./packages/ai/prompts
 USER node
 EXPOSE 10000
 CMD ["node", "apps/web/server.js"]
