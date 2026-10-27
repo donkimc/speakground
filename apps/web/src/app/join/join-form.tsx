@@ -11,16 +11,19 @@ type Step = "invite" | "sign-in" | "magic-sent";
 export function JoinForm({
   initialCode,
   initialStep = "invite",
+  purpose = "join",
   authError = null,
   kakaoEnabled,
 }: {
   initialCode: string;
   initialStep?: Step;
+  purpose?: "join" | "login";
   authError?: string | null;
   kakaoEnabled: boolean;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(initialStep);
+  const [returning, setReturning] = useState(purpose === "login");
   const [code, setCode] = useState(initialCode);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(authError);
@@ -40,6 +43,7 @@ export function JoinForm({
         setError(data.error ?? "Could not validate invite.");
         return;
       }
+      setReturning(false);
       setStep("sign-in");
     });
   }
@@ -94,11 +98,19 @@ export function JoinForm({
     return (
       <div className="space-y-6">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Sign in to join</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {returning ? "Log in" : "Sign in to join"}
+          </h1>
           <p className="text-muted-foreground">
-            Invite accepted. Continue with Kakao or an email magic link.
+            {returning
+              ? "Use the Kakao account or email you joined with."
+              : "Invite accepted. Continue with Kakao or an email magic link."}
           </p>
-          <KoreanHint>카카오 또는 이메일 링크로 가입하세요.</KoreanHint>
+          <KoreanHint>
+            {returning
+              ? "가입할 때 쓴 카카오 또는 이메일로 로그인하세요."
+              : "카카오 또는 이메일 링크로 가입하세요."}
+          </KoreanHint>
         </div>
 
         {error ? (
@@ -138,16 +150,27 @@ export function JoinForm({
           </form>
         </div>
 
-        <button
-          type="button"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-          onClick={() => {
-            setStep("invite");
-            void fetch("/api/invite", { method: "DELETE" });
-          }}
-        >
-          Use a different invite code
-        </button>
+        {returning ? (
+          <button
+            type="button"
+            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => setStep("invite")}
+          >
+            Join with an invite code
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => {
+              setReturning(false);
+              setStep("invite");
+              void fetch("/api/invite", { method: "DELETE" });
+            }}
+          >
+            Use a different invite code
+          </button>
+        )}
       </div>
     );
   }
@@ -183,6 +206,18 @@ export function JoinForm({
 
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? "Checking…" : "Continue"}
+      </Button>
+
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full"
+        onClick={() => {
+          setReturning(true);
+          setStep("sign-in");
+        }}
+      >
+        Log in
       </Button>
 
       <button

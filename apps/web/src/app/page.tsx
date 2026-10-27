@@ -2,6 +2,7 @@ import { Button, KoreanHint } from "@fluentloop/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { SignOutButton } from "@/components/sign-out-button";
 import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -46,31 +47,41 @@ export default async function HomePage({
       </div>
 
       {session && consentedAt ? (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground">
             Signed in as <span className="font-medium text-foreground">{displayName}</span>.
           </p>
-          <Button asChild>
+          <Button asChild className="w-full">
             <Link href="/practice">Today&apos;s practice</Link>
           </Button>
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="w-full">
             <Link href="/notebook">Notebook</Link>
           </Button>
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="w-full">
             <Link href="/progress">Progress</Link>
           </Button>
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="w-full">
             <Link href="/placement">Placement test</Link>
           </Button>
+          <SignOutButton className="w-full" />
         </div>
       ) : session ? (
-        <Button asChild>
-          <Link href="/onboarding">Finish setup</Link>
-        </Button>
+        <div className="flex flex-col gap-3">
+          <Button asChild className="w-full">
+            <Link href="/onboarding">Finish setup</Link>
+          </Button>
+          <SignOutButton className="w-full" />
+        </div>
       ) : (
-        <Button asChild>
-          <Link href="/join">Join with invite</Link>
-        </Button>
+        <div className="flex flex-col gap-3">
+          <Button asChild className="w-full">
+            <Link href="/join">Join with invite</Link>
+          </Button>
+          <Button asChild variant="secondary" className="w-full">
+            <Link href="/join?intent=login">Log in</Link>
+          </Button>
+          <KoreanHint>처음이면 초대 코드가 필요해요. 계정이 있으면 로그인하세요.</KoreanHint>
+        </div>
       )}
     </main>
   );

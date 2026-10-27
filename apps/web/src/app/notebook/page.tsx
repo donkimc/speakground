@@ -2,6 +2,7 @@ import { KoreanHint } from "@fluentloop/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { SiteHeader } from "@/components/site-header";
 import { requireLearner } from "@/lib/learner";
 import { loadNotebook } from "@/lib/notebook";
 
@@ -24,7 +25,7 @@ export default async function NotebookPage() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 py-12">
-      <p className="mb-6 text-sm font-semibold tracking-wide text-primary uppercase">SpeakGround</p>
+      <SiteHeader />
       <div className="mb-8 space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Notebook</h1>
         <p className="text-muted-foreground">Phrases from answers you missed, ready to review.</p>

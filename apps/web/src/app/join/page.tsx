@@ -13,7 +13,12 @@ export const dynamic = "force-dynamic";
 export default async function JoinPage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string; error?: string; error_description?: string }>;
+  searchParams: Promise<{
+    code?: string;
+    error?: string;
+    error_description?: string;
+    intent?: string;
+  }>;
 }) {
   let session: Awaited<ReturnType<typeof getSession>> = null;
   try {
@@ -29,6 +34,7 @@ export default async function JoinPage({
   const params = await searchParams;
   const jar = await cookies();
   const inviteReady = Boolean(jar.get(INVITE_COOKIE)?.value);
+  const loggingIn = params.intent === "login" && !inviteReady;
   const authError = explainAuthError(params.error, params.error_description);
   let kakaoEnabled = false;
   try {
@@ -42,7 +48,8 @@ export default async function JoinPage({
       <p className="mb-6 text-sm font-semibold tracking-wide text-primary uppercase">SpeakGround</p>
       <JoinForm
         initialCode={params.code?.trim() ?? ""}
-        initialStep={inviteReady ? "sign-in" : "invite"}
+        initialStep={loggingIn || inviteReady ? "sign-in" : "invite"}
+        purpose={loggingIn ? "login" : "join"}
         authError={authError}
         kakaoEnabled={kakaoEnabled}
       />
