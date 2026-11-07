@@ -11,6 +11,6 @@
     "@fluentloop/ai": "workspace:*",
     "@fluentloop/core": "workspace:*",
     "tsx": "^4.23.15",
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   }
 }
